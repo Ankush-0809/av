@@ -1,0 +1,41 @@
+# Load libraries
+library(readr)
+library(ggplot2)
+library(caret)
+
+# Load dataset
+movie_data <- read_csv(""C:\Users\DELL\Desktop\archive (1)\movies.csv"")
+
+# Explore dataset
+head(movie_data)
+summary(movie_data)
+
+# Check for missing values
+sum(is.na(movie_data))
+
+# Feature engineering
+movie_data$release_date <- as.Date(movie_data$release_date, "%Y-%m-%d")
+movie_data$year <- year(movie_data$release_date)
+movie_data$month <- month(movie_data$release_date)
+
+# Split data into train and test sets
+set.seed(123)
+train_index <- createDataPartition(movie_data$box_office, p = 0.8, list = FALSE)
+train_data <- movie_data[train_index, ]
+test_data <- movie_data[-train_index, ]
+
+# Train linear regression model
+model <- lm(box_office ~ budget + runtime + year + month, data = train_data)
+
+# Predictions
+predictions <- predict(model, newdata = test_data)
+
+# Evaluate model
+rmse <- sqrt(mean((test_data$box_office - predictions)^2))
+print(paste("Root Mean Squared Error:", rmse))
+
+# Plot actual vs. predicted
+ggplot() +
+    geom_point(data = test_data, aes(x = box_office, y = predictions)) +
+    geom_abline(color = "red") +
+    labs(x = "Actual Box Office", y = "Predicted Box Office", title = "Actual vs Predicted Box Office")
